@@ -91,6 +91,7 @@ void ecs::ECS::add_to_component_list(ID id, ecs::Hash hash) {
     // if the component list does not exist, create it
     if (component_entity_lists.find(hash) == component_entity_lists.end()) {
         component_entity_lists[hash] = ComponentEntityList{};
+        component_entity_lists[hash].set(this, hash);
     }
     component_entity_lists.at(hash).push_back(id);
 }

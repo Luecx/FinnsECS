@@ -18,7 +18,7 @@ namespace ecs {
  * Any component that is added to an entity must inherit from this struct.
  */
 struct ComponentInterface {
-    ID component_entity_id;
+    ID component_entity_id = INVALID_ID;
 
     // when the component is removed from the entity
     virtual void component_removed() = 0;

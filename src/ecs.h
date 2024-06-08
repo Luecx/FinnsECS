@@ -91,8 +91,8 @@ struct ECS : public ECSBase {
     template<typename K, typename... R>
     inline EntitySubSet<K, R...> each() {
         auto  hash = K::hash();
-        auto* ids  = component_entity_lists[hash].entities;
-        return EntitySubSet<K, R...> {ids, entities};
+        auto* ids  = &component_entity_lists[hash].elements;
+        return EntitySubSet<K, R...> {ids, &entities};
     }
 
     template<typename K, typename... R>
@@ -127,33 +127,30 @@ struct ECS : public ECSBase {
 
     void                 add_system(System* system);
     void                 process(double delta);
-
     friend std::ostream& operator<<(std::ostream& os, const ECS& ecs1) {
         os << "All Entities: " << std::endl;
         os << "-----------------" << std::endl;
         for (const auto& entity : ecs1.entities) {
+            os << "Entity ID: " << std::setw(10);
             if (entity.valid()) {
-                os << "Entity ID: " << std::setw(10) << entity.id()
-                   << " | Active: " << (entity.active() ? "true" : "false") << std::endl;
+                os << entity.id() << " | Active: " << (entity.active() ? "true" : "false");
             } else {
-                os << "Entity ID: " << std::setw(10) << "INVALID"
-                   << " | Active: "
-                   << "-" << std::endl;
+                os << "INVALID" << " | Active: -";
             }
+            os << std::endl;
         }
         os << std::endl;
 
         os << "Active Entities: " << std::endl;
         os << "-----------------" << std::endl;
         for (const auto& id : ecs1.active_entities) {
+            os << "Entity ID: " << std::setw(10);
             if (id != INVALID_ID) {
-                os << "Entity ID: " << std::setw(10) << id << " | Active: "
-                   << "true" << std::endl;
+                os << id << " | Active: true";
             } else {
-                os << "Entity ID: " << std::setw(10) << "INVALID"
-                   << " | Active: "
-                   << "-" << std::endl;
+                os << "INVALID" << " | Active: -";
             }
+            os << std::endl;
         }
         os << std::endl;
 
@@ -161,22 +158,24 @@ struct ECS : public ECSBase {
         os << "-----------------------" << std::endl;
         for (const auto& pair : ecs1.component_entity_lists) {
             os << "Component Hash: " << std::setw(20) << pair.first.hash_code() << std::endl;
-            os << "Entities: ";
+            os << "Entities: " << std::endl;
             for (const auto& id : pair.second) {
+                os << std::setw(10);
                 if (id != INVALID_ID) {
-                    os << std::setw(10) << id
-                       << " (Active: " << (ecs1.entities[id].active() ? "true" : "false") << ") ";
+                    os << id << " | Active: " << (ecs1.entities[id].active() ? "true" : "false");
                 } else {
-                    os << std::setw(10) << "null (Active: -) ";
+                    os << "INVALID_ID | Active: -";
                 }
+                os << std::endl;
             }
-            os << std::endl << "-----------------------" << std::endl;
+            os << "-----------------------" << std::endl;
         }
         os << std::endl;
 
         return os;
     }
 };
+
 }    // namespace ecs
 
 #endif    // ECS_ECS_ECS_H_

@@ -4,6 +4,7 @@
 #include "entity.h"
 #include "types.h"
 
+#include <iostream>
 #include <vector>
 
 namespace ecs {
@@ -20,6 +21,7 @@ struct EntityIterator {
                    std::vector<ID>::iterator id_end,
                    std::vector<Entity>* entity_packs)
         : m_id_iter(id_iter), m_id_end(id_end), m_entity_packs(entity_packs) {
+
         advance_to_next_valid();
     }
 
@@ -59,11 +61,19 @@ struct EntityIterator {
     std::vector<Entity>* m_entity_packs;
 
     void advance_to_next_valid() {
+
         while (   m_id_iter != m_id_end
-               && *m_id_iter != INVALID_ID
                && !(*m_entity_packs)[*m_id_iter].template has<RTypes...>()) {
+
+            // if id is IVALID_ID, skip
+            if (*m_id_iter == INVALID_ID) {
+                ++m_id_iter;
+                continue;
+            }
+
             ++m_id_iter;
         }
+
     }
 };
 
@@ -73,7 +83,8 @@ struct EntitySubSet {
     std::vector<Entity>* entries;
 
     EntitySubSet(std::vector<ID>* ids, std::vector<Entity>* entries)
-        : ids(ids), entries(entries) {}
+        : ids(ids), entries(entries) {
+    }
 
     EntityIterator<RTypes...> begin() {
         return EntityIterator<RTypes...> {ids->begin(), ids->end(), entries};

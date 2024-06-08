@@ -18,9 +18,6 @@ namespace {
 }
 
 struct ComponentEntityList : SelfArrangingList<ID> {
-    // list of entities that have the component
-    std::vector<ID> entities {};
-
     // pointer to the ECS
     ECS* ecs;
 
