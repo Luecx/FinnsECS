@@ -10,48 +10,26 @@
 
 namespace ecs {
 
-
 struct Entity;
 
 struct ECS;
 
 struct ComponentEntityList;
 
-/**
- * @brief Forward declaration of the System structure.
- */
 struct System;
 
-/**
- * @brief Template structure for iterating over entities with specific component types.
- *
- * @tparam RTypes The component types required for the iteration.
- */
 template<typename... RTypes>
 struct EntityIterator;
 
-/**
- * @brief Template structure for a subset of entities with specific component types.
- *
- * @tparam RTypes The component types that define the subset.
- */
 template<typename... RTypes>
 struct EntitySubSet;
 
-/**
- * @brief Type alias for entity IDs.
- */
-typedef uint32_t ID;
-
-/**
- * @brief Type alias for component hashes using std::type_index.
- */
+typedef std::size_t     ID;
 typedef std::type_index Hash;
 
-/**
- * @brief Constant representing an invalid entity ID.
- */
-#define INVALID_ID ID(-1)
+#define INVALID_ID   ID(-1)
+#define INVALID_HASH Hash(typeid(void))
+
 
 }    // namespace ecs
 

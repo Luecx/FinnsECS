@@ -5,6 +5,7 @@
 #include "ecs_base.h"
 #include "hash.h"
 #include "types.h"
+#include "ids.h"
 
 #include <memory>
 #include <unordered_map>
@@ -21,7 +22,7 @@ namespace ecs {
 struct Entity {
     private:
     // Unique identifier for the entity.
-    ID entity_id;
+    EntityID entity_id;
     // Container for the entity's components.
     std::unordered_map<Hash, ComponentPtr> components;
     // Pointer to the ECS that owns this entity.
@@ -36,7 +37,7 @@ struct Entity {
     public:
 
     Entity(ECSBase* p_ecs)
-        : entity_id(INVALID_ID)
+        : entity_id{INVALID_ID}
         , ecs(p_ecs) {}
 
     virtual ~Entity() {
@@ -120,7 +121,7 @@ struct Entity {
         ecs->destroy_entity(this->entity_id);
     }
 
-    ID id() const {
+    EntityID id() const {
         return entity_id;
     }
 

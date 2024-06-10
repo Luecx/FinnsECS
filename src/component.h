@@ -21,15 +21,15 @@ struct ComponentInterface {
     ID component_entity_id = INVALID_ID;
 
     // when the component is removed from the entity
-    virtual void component_removed() = 0;
+    virtual void component_removed() {};
 
     // when the entity is activated or deactivated
-    virtual void entity_activated() = 0;
-    virtual void entity_deactivated() = 0;
+    virtual void entity_activated() {};
+    virtual void entity_deactivated() {};
 
     // when another component is added or removed
-    virtual void other_component_added(Hash hash) = 0;
-    virtual void other_component_removed(Hash hash) = 0;
+    virtual void other_component_added(Hash hash) {};
+    virtual void other_component_removed(Hash hash) {};
 
     // get the hash of the component
     virtual Hash get_hash() const = 0;

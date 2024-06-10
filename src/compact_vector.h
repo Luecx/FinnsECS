@@ -2,8 +2,8 @@
 // Created by Finn Eggers on 08.06.24.
 //
 
-#ifndef ECS_SELF_ARRANGING_LIST_H
-#define ECS_SELF_ARRANGING_LIST_H
+#ifndef ECS_COMPACT_VECTOR_H
+#define ECS_COMPACT_VECTOR_H
 
 #include <vector>
 
@@ -14,7 +14,7 @@
 namespace ecs {
 
 template<typename T>
-struct SelfArrangingList {
+struct CompactVector {
     std::vector<T> elements;
 
     void push_back(const T &element) {
@@ -84,6 +84,9 @@ struct SelfArrangingList {
     const T &at(ID id) const { return elements.at(id); }
     const T &operator()(ID id) const { return elements[id]; }
 
+    ID size() const { return elements.size(); }
+    void clear() { elements.clear(); }
+
     protected:
 
     virtual void moved(ID old_id, ID new_id) {};
@@ -93,4 +96,4 @@ struct SelfArrangingList {
 
 }    // namespace ecs
 
-#endif    // ECS_SELF_ARRANGING_LIST_H
+#endif    // ECS_COMPACT_VECTOR_H

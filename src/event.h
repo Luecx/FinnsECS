@@ -5,13 +5,21 @@
 #ifndef ECS_ECS_EVENT_H_
 #define ECS_ECS_EVENT_H_
 
+#include <memory>
+#include "types.h"
+#include "ids.h"
+
 namespace ecs {
 
-struct EventBaseListener {};
+struct EventBaseListener {
+    using Ptr = std::shared_ptr<EventBaseListener>;
+};
 
 template<typename Event>
 struct EventListener : public EventBaseListener {
-    virtual void receive(const Event& event) = 0;
+    const Hash hash = get_type_hash<Event>();
+
+    virtual void receive(ECS* ecs, const Event& event) = 0;
 };
 
 }    // namespace ecs

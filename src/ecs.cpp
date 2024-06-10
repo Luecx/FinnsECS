@@ -3,9 +3,9 @@
 //
 #include "ecs.h"
 
-ecs::ID ecs::ECS::spawn(bool active) {
+ecs::EntityID ecs::ECS::spawn(bool active) {
     entities.push_back(Entity(this));
-    entities.back().entity_id = entities.size() - 1;
+    entities.back().entity_id = EntityID{entities.size() - 1};
 
     if (active) {
         entities.back().activate();
@@ -14,7 +14,7 @@ ecs::ID ecs::ECS::spawn(bool active) {
     return entities.back().entity_id;
 }
 
-void ecs::ECS::destroy_entity(ecs::ID id) {
+void ecs::ECS::destroy_entity(ecs::EntityID id) {
     // get the entity at the given id
     auto entity = &entities[id];
 
@@ -25,7 +25,7 @@ void ecs::ECS::destroy_entity(ecs::ID id) {
     entity->remove_all_components();
 
     // set the entity's id to INVALID_ID and the pointer to nullptr
-    entity->entity_id = INVALID_ID;
+    entity->entity_id = EntityID{INVALID_ID};
 }
 
 void ecs::ECS::destroy_all_entities() {
@@ -36,23 +36,23 @@ void ecs::ECS::destroy_all_entities() {
 }
 
 void ecs::ECS::destroy_all_systems() {
-    for (System* sys : systems) {
-        sys->destroy();
+    for (auto sys : systems) {
+        sys->destroyed();
     }
     systems.clear();
 }
 
-void ecs::ECS::component_removed(ecs::Hash hash, ID id) {
+void ecs::ECS::component_removed(ecs::Hash hash, EntityID id) {
     if (entities[id].active()) {
         remove_from_component_list(id, hash);
     }
 }
-void ecs::ECS::component_added(ecs::Hash hash, ID id) {
+void ecs::ECS::component_added(ecs::Hash hash, EntityID id) {
     if (entities[id].active()) {
         add_to_component_list(id, hash);
     }
 }
-void ecs::ECS::entity_activated(ecs::ID entity_id) {
+void ecs::ECS::entity_activated(ecs::EntityID entity_id) {
     if (entity_id == INVALID_ID || entity_id >= entities.size())
         return;
     if (!entities[entity_id].valid())
@@ -64,7 +64,7 @@ void ecs::ECS::entity_activated(ecs::ID entity_id) {
     add_to_component_list(entity_id);
 }
 
-void ecs::ECS::entity_deactivated(ecs::ID entity_id) {
+void ecs::ECS::entity_deactivated(ecs::EntityID entity_id) {
     if (entity_id == INVALID_ID || entity_id >= entities.size())
         return;
     if (!entities[entity_id].valid())
@@ -106,11 +106,8 @@ void ecs::ECS::remove_from_active_entities(ID id) {
     active_entities.remove(id);
 }
 
-void ecs::ECS::add_system(ecs::System* system) {
-    systems.push_back(system);
-}
 void ecs::ECS::process(double delta) {
-    for (System* sys : systems) {
+    for (auto sys : systems) {
         sys->process(this, delta);
     }
 }

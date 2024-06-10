@@ -5,9 +5,9 @@
 #ifndef ECS_COMPONENT_ENTITY_LIST_H
 #define ECS_COMPONENT_ENTITY_LIST_H
 
+#include "compact_vector.h"
 #include "entity.h"
 #include "types.h"
-#include "self_arranging_list.h"
 
 #include <vector>
 
@@ -17,7 +17,7 @@ namespace {
     struct Empty : public ComponentBaseOf<Empty> {};
 }
 
-struct ComponentEntityList : SelfArrangingList<ID> {
+struct ComponentEntityList : CompactVector<ID> {
     // pointer to the ECS
     ECS* ecs;
 

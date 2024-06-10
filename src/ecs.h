@@ -12,6 +12,7 @@
 #include "event.h"
 #include "hash.h"
 #include "iterator.h"
+#include "recycling_vector.h"
 #include "system.h"
 #include "types.h"
 
@@ -30,12 +31,12 @@ namespace ecs {
  * to create entities, add/remove components, and process systems.
  */
 struct ECS : public ECSBase {
-    std::unordered_map<Hash, ComponentEntityList>             component_entity_lists {};
-    std::vector<Entity>                                       entities {};
-    SelfArrangingList<ID>                                     active_entities {};
+    std::unordered_map<Hash, ComponentEntityList>                     component_entity_lists {};
+    std::vector<Entity>                                               entities {};
+    CompactVector<ID>                                                 active_entities {};
 
-    std::vector<System*>                                      systems {};
-    std::unordered_map<Hash, std::vector<EventBaseListener*>> event_listener {};
+    RecyclingVector<System::Ptr>                                      systems {nullptr};
+    std::unordered_map<Hash, RecyclingVector<EventBaseListener::Ptr>> event_listener {};
 
     // Grant Entity access to private members.
     friend Entity;
@@ -47,10 +48,10 @@ struct ECS : public ECSBase {
     }
 
     public:
-    ID   spawn(bool active = false);
-    void destroy_entity(ID id);
-    void destroy_all_entities();
-    void destroy_all_systems();
+    EntityID spawn(bool active = false);
+    void     destroy_entity(EntityID id) override;
+    void     destroy_all_entities();
+    void     destroy_all_systems();
 
     // operators to get an entity from an id
     Entity& operator[](ID id) {
@@ -74,10 +75,10 @@ struct ECS : public ECSBase {
 
     private:
     // listeners to functions applied onto the entities
-    void component_removed(Hash hash, ID id) override;
-    void component_added(Hash hash, ID id) override;
-    void entity_activated(ID id) override;
-    void entity_deactivated(ID id) override;
+    void component_removed(Hash hash, EntityID id) override;
+    void component_added(Hash hash, EntityID id) override;
+    void entity_activated(EntityID id) override;
+    void entity_deactivated(EntityID id) override;
 
     // functions to manage the lists
     void add_to_component_list(ID entity);
@@ -106,26 +107,44 @@ struct ECS : public ECSBase {
     }
 
     template<typename Event>
-    inline void add_event_listener(EventListener<Event>* listener) {
-        Hash hash = get_type_hash<Event>();
-        if (event_listener.find(hash) == event_listener.end()) {
-            event_listener[hash] = {};
-        }
-        event_listener[hash].push_back(listener);
-    }
-
-    template<typename Event>
     inline void emit_event(const Event& event) {
         Hash hash = get_type_hash<Event>();
         if (event_listener.find(hash) == event_listener.end())
             return;
-        for (EventBaseListener* listener : event_listener[hash]) {
-            auto l = reinterpret_cast<EventListener<Event>*>(listener);
-            l->receive(event);
+        for (auto listener : event_listener[hash]) {
+            auto l = reinterpret_cast<EventListener<Event>*>(listener.get());
+            l->receive(this, event);
         }
     }
 
-    void                 add_system(System* system);
+    template<typename T, typename... Args>
+    SystemID create_system(Args&&... args) {
+        std::shared_ptr<T> system = std::make_shared<T>(std::forward<Args>(args)...);
+        ID pos = systems.push_back(system);
+        return SystemID{pos};
+    }
+    void destroy_system(SystemID id) override {
+        if (id >= systems.size())
+            return;
+        systems[id]->destroyed();
+        systems.remove_at(id);
+    }
+
+    template<typename T, typename... Args>
+    EventListenerID create_listener(Args&&... args) {
+        std::shared_ptr<T> listener = std::make_shared<T>(std::forward<Args>(args)...);
+        auto hash = listener->hash;
+
+        if (event_listener.find(hash) == event_listener.end()) {
+            event_listener[hash] = {nullptr};
+        }
+        ID pos = event_listener[hash].push_back(listener);
+        return EventListenerID{pos, hash};
+    }
+    void destroy_listener(EventListenerID id) override {
+        event_listener[id.operator Hash()].remove_at((ID)id);
+    }
+
     void                 process(double delta);
     friend std::ostream& operator<<(std::ostream& os, const ECS& ecs1) {
         os << "All Entities: " << std::endl;
@@ -135,7 +154,8 @@ struct ECS : public ECSBase {
             if (entity.valid()) {
                 os << entity.id() << " | Active: " << (entity.active() ? "true" : "false");
             } else {
-                os << "INVALID" << " | Active: -";
+                os << "INVALID"
+                   << " | Active: -";
             }
             os << std::endl;
         }
@@ -148,7 +168,8 @@ struct ECS : public ECSBase {
             if (id != INVALID_ID) {
                 os << id << " | Active: true";
             } else {
-                os << "INVALID" << " | Active: -";
+                os << "INVALID"
+                   << " | Active: -";
             }
             os << std::endl;
         }
