@@ -19,7 +19,7 @@ This Entity Component System (ECS) library is designed to help manage entities, 
 To start using the ECS library, include the necessary headers in your project:
 
 ```cpp
-#include "ecs/ecs_core.h"
+#include "ecs/include.h"
 ```
 
 Ensure that your project is set up to compile the ECS library source files.
