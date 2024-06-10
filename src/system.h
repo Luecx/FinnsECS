@@ -22,6 +22,6 @@ struct System {
     virtual void destroyed() {};
 };
 
-}    // namespace ecs
+}    // namespace ecs_
 
 #endif    // ECS_ECS_SYSTEM_H_

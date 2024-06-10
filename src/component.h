@@ -17,7 +17,7 @@ namespace ecs {
 /**
  * Any component that is added to an entity must inherit from this struct.
  */
-struct ComponentInterface {
+struct ComponentBase {
     ID component_entity_id = INVALID_ID;
 
     // when the component is removed from the entity
@@ -36,7 +36,7 @@ struct ComponentInterface {
 };
 
 template <typename T>
-struct ComponentBaseOf : public ComponentInterface {
+struct ComponentOf : public ComponentBase {
     // implement static hash function for components
     static Hash hash() {
         return get_type_hash<T>();
@@ -48,8 +48,8 @@ struct ComponentBaseOf : public ComponentInterface {
     }
 };
 
-using ComponentPtr = std::shared_ptr<ComponentInterface>;
+using ComponentPtr = std::shared_ptr<ComponentBase>;
 
-} // namespace ecs
+} // namespace ecs_
 
 #endif // ECS_ECS_COMPONENT_H_

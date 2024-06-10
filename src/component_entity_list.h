@@ -5,33 +5,40 @@
 #ifndef ECS_COMPONENT_ENTITY_LIST_H
 #define ECS_COMPONENT_ENTITY_LIST_H
 
-#include "compact_vector.h"
 #include "entity.h"
 #include "types.h"
+#include "vector_compact.h"
 
 #include <vector>
 
 namespace ecs {
 
-namespace {
-    struct Empty : public ComponentBaseOf<Empty> {};
-}
-
 struct ComponentEntityList : CompactVector<ID> {
     // pointer to the ECS
-    ECS* ecs;
+    std::vector<Entity>* entities_ = nullptr;
 
     // hash of the component
-    Hash component_hash = Empty::hash();
+    Hash comp_hash_ = Hash{INVALID_HASH};
 
-    // set ecs and component hash via some function to allow empty constructions
-    void set(ECS* ecs, Hash component_hash);
+    // set ecs_ and component hash via some function to allow empty constructions
+    void set(std::vector<Entity>* entities, Hash component_hash) {
+        this->entities_      = entities;
+        this->comp_hash_     = component_hash;
+    }
 
     // overloaded
-    void moved(ID from, ID to) override;
-    void removed(ID id) override;
-    void added(ID id) override;
+    void moved(ID from, ID to) override {
+        (*entities_)[elements[to]].components[comp_hash_]->component_entity_id = to;
+    }
+    void removed(ID id) override {
+        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = INVALID_ID;
+    }
+    void added(ID id) override {
+        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = id;
+    }
+
 };
 
-}    // namespace ecs
+}    // namespace ecs_
+
 #endif    // ECS_COMPONENT_ENTITY_LIST_H

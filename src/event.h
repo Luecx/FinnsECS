@@ -11,16 +11,16 @@
 
 namespace ecs {
 
-struct EventBaseListener {
-    using Ptr = std::shared_ptr<EventBaseListener>;
+struct EventListenerBase {
+    using Ptr = std::shared_ptr<EventListenerBase>;
 };
 
 template<typename Event>
-struct EventListener : public EventBaseListener {
+struct EventListener : public EventListenerBase {
     const Hash hash = get_type_hash<Event>();
 
     virtual void receive(ECS* ecs, const Event& event) = 0;
 };
 
-}    // namespace ecs
+}    // namespace ecs_
 #endif    // ECS_ECS_EVENT_H_

@@ -12,6 +12,7 @@ namespace ecs {
 
 struct Entity;
 
+struct ECSBase;
 struct ECS;
 
 struct ComponentEntityList;
@@ -31,6 +32,6 @@ typedef std::type_index Hash;
 #define INVALID_HASH Hash(typeid(void))
 
 
-}    // namespace ecs
+}    // namespace ecs_
 
 #endif    // ECS_ECS_TYPES_H_

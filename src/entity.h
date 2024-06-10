@@ -67,7 +67,7 @@ struct Entity {
     template<typename T, typename... Args>
     inline void assign(Args&&... args) {
         auto component = std::make_shared<T>(std::forward<Args>(args)...);
-        Hash hash      = T::hash();
+        Hash hashing   = T::hash();
 
         // If the component already exists, remove it first
         if (has<T>()) {
@@ -75,13 +75,13 @@ struct Entity {
         }
 
         // Add the new component
-        components[hash] = component;
-        ecs->component_added(hash, id());
+        components[hashing] = component;
+        ecs->component_added(hashing, id());
 
         // notify all other components that a new component was added
         for (auto& [hash, comp] : components) {
             // dont do it for itself
-            if (hash == component->get_hash())
+            if (hash == hashing)
                 continue;
 
             // call the other_component_added function
@@ -190,6 +190,6 @@ struct Entity {
     }
 };
 
-}    // namespace ecs
+}    // namespace ecs_
 
 #endif    // ECS_ECS_ENTITY_H_

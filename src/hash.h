@@ -24,6 +24,6 @@ Hash get_type_hash() {
     return std::type_index(typeid(T));
 }
 
-}    // namespace ecs
+}    // namespace ecs_
 
 #endif    // ECS_ECS_HASH_H_

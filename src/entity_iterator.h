@@ -76,25 +76,6 @@ struct EntityIterator {
 
     }
 };
-
-template<typename... RTypes>
-struct EntitySubSet {
-    std::vector<ID>* ids;
-    std::vector<Entity>* entries;
-
-    EntitySubSet(std::vector<ID>* ids, std::vector<Entity>* entries)
-        : ids(ids), entries(entries) {
-    }
-
-    EntityIterator<RTypes...> begin() {
-        return EntityIterator<RTypes...> {ids->begin(), ids->end(), entries};
-    }
-
-    EntityIterator<RTypes...> end() {
-        return EntityIterator<RTypes...> {ids->end(), ids->end(), entries};
-    }
-};
-
-} // namespace ecs
+} // namespace ecs_
 
 #endif // ECS_ECS_ITERATOR_H_

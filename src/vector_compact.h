@@ -2,8 +2,8 @@
 // Created by Finn Eggers on 08.06.24.
 //
 
-#ifndef ECS_COMPACT_VECTOR_H
-#define ECS_COMPACT_VECTOR_H
+#ifndef ECS_VECTOR_COMPACT_H
+#define ECS_VECTOR_COMPACT_H
 
 #include <vector>
 
@@ -40,7 +40,7 @@ struct CompactVector {
         if (it != elements.end()) {
             // get the id of the last element and the element to be removed
             auto last_id = elements.size() - 1;
-            auto element_id = std::distance(elements.begin(), it);
+            auto element_id = static_cast<ID>(std::distance(elements.begin(), it));
 
             removed(element_id);
 
@@ -94,6 +94,6 @@ struct CompactVector {
     virtual void added(ID id) {};
 };
 
-}    // namespace ecs
+}    // namespace ecs_
 
-#endif    // ECS_COMPACT_VECTOR_H
+#endif    // ECS_VECTOR_COMPACT_H

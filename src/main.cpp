@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-struct C1 : public ecs::ComponentBaseOf<C1> {
+struct C1 : public ecs::ComponentOf<C1> {
     int  value = 0;
 
     void component_removed() override {
@@ -22,7 +22,7 @@ struct C1 : public ecs::ComponentBaseOf<C1> {
     }
 };
 
-struct C2 : public ecs::ComponentBaseOf<C2> {
+struct C2 : public ecs::ComponentOf<C2> {
     int  value = 0;
 
     void component_removed() override {
@@ -42,7 +42,7 @@ struct C2 : public ecs::ComponentBaseOf<C2> {
     }
 };
 
-struct C3 : public ecs::ComponentBaseOf<C3> {
+struct C3 : public ecs::ComponentOf<C3> {
     int  value = 0;
 
     void component_removed() override {
@@ -62,18 +62,20 @@ struct C3 : public ecs::ComponentBaseOf<C3> {
     }
 };
 
-struct Ball : public ecs::ComponentBaseOf<Ball> {
-    float  pos = 0;
-    float  vel = 0;
+struct Ball : public ecs::ComponentOf<Ball> {
+    double  pos = 0;
+    double  vel = 0;
 
+    virtual ~Ball() {};
     // constructor
-    Ball(float pos, float vel = 0.f) : pos(pos), vel(vel) {}
+    Ball(double pos, double vel = 0.f) : pos(pos), vel(vel) {}
 };
 
-struct EnergyLoss : public ecs::ComponentBaseOf<EnergyLoss> {
-    float loss = 0.0;
+struct EnergyLoss : public ecs::ComponentOf<EnergyLoss> {
+    double loss = 0.0;
+    virtual ~EnergyLoss() {};
 
-    EnergyLoss(float loss) : loss(loss) {}
+    EnergyLoss(double loss) : loss(loss) {}
 };
 
 struct Collision {};
@@ -95,9 +97,11 @@ struct CollisionListener : public ecs::EventListener<Collision> {
             }
         }
     };
+    virtual ~CollisionListener() {};
 };
 
 struct Gravity : public ecs::System{
+    virtual ~Gravity() {};
     void process(ecs::ECS* ecs, double delta) {
         for(auto ent: ecs->each<Ball>()) {
             auto comp = ent.get<Ball>();
@@ -114,6 +118,7 @@ struct Gravity : public ecs::System{
 };
 
 struct Display : public ecs::System{
+    virtual ~Display() {};
     void process(ecs::ECS* ecs, double delta) {
         for(auto ent: ecs->each<Ball>()) {
             auto comp = ent.get<Ball>();
@@ -124,7 +129,7 @@ struct Display : public ecs::System{
 
 int main() {
 
-    // cretae an ecs, add a ball entity with energy loss and a system to proces. add another system to show the position of the ball
+    // cretae an ecs_, add a ball entity with energy loss and a system to proces. add another system to show the position of the ball
     ecs::ECS ecs;
     auto id = ecs.spawn();
     ecs[id].assign<EnergyLoss>(0.1f);
