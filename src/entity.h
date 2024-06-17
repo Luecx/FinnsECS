@@ -65,9 +65,12 @@ struct Entity {
     }
 
     template<typename T, typename... Args>
-    inline void assign(Args&&... args) {
+    inline ComponentID assign(Args&&... args) {
         auto component = std::make_shared<T>(std::forward<Args>(args)...);
         Hash hashing   = T::hash();
+
+        // assign ecs to the component
+        component->ecs = ecs;
 
         // If the component already exists, remove it first
         if (has<T>()) {
@@ -93,6 +96,9 @@ struct Entity {
         if (m_active) {
             component->entity_activated();
         }
+
+        // return the component id
+        return ComponentID{entity_id, hashing};
     }
 
     template<typename T>

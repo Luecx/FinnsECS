@@ -7,6 +7,7 @@
 
 #include "types.h"
 #include "hash.h"
+#include "ecs_base.h"
 
 #include <ostream>
 #include <type_traits>
@@ -18,6 +19,8 @@ namespace ecs {
  * Any component that is added to an entity must inherit from this struct.
  */
 struct ComponentBase {
+    ECSBase* ecs = nullptr;
+
     ID component_entity_id = INVALID_ID;
 
     // when the component is removed from the entity

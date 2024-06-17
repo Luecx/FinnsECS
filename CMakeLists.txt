@@ -3,7 +3,4 @@ project(ECS)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(ECS main.cpp
-        src/component_entity_list.h
-        src/ecs.cpp
-        src/component_entity_list.cpp)
+add_executable(ECS src/main.cpp)

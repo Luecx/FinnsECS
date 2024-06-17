@@ -43,6 +43,15 @@ struct ECS : public ECSBase {
     friend Entity;
     friend ComponentEntityList;
 
+    ECS() = default;
+
+    // Delete copy constructor and copy assignment operator
+    ECS(const ECS&) = delete;
+    ECS& operator=(const ECS&) = delete;
+    // Delete move constructor and move assignment operator
+    ECS(ECS&&) = delete;
+    ECS& operator=(ECS&&) = delete;
+
     virtual ~ECS() {
         destroy_all_entities();
         destroy_all_systems();

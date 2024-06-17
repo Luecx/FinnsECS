@@ -129,7 +129,6 @@ struct Display : public ecs::System{
 
 int main() {
 
-    // cretae an ecs_, add a ball entity with energy loss and a system to proces. add another system to show the position of the ball
     ecs::ECS ecs;
     auto id = ecs.spawn();
     ecs[id].assign<EnergyLoss>(0.1f);
@@ -143,7 +142,6 @@ int main() {
     for(int i = 0; i < 1000; i++) {
         ecs.process(0.01);
     }
-
 
     return 0;
 }

@@ -1,0 +1,1 @@
+./Heady -s "./src" --excluded "main.cpp" -o "include/ecs.h"

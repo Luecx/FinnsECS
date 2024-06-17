@@ -73,6 +73,15 @@ struct EntityID {
     operator ID&() { return id; }
 };
 
+struct ComponentID {
+    ID  id    = INVALID_ID;
+    Hash hash = INVALID_HASH;
+    operator ID() const { return id; }
+    operator ID&() { return id; }
+    operator Hash() const { return hash; }
+    operator Hash&() { return hash; }
+};
+
 struct SystemID {
     ID id = INVALID_ID;
     operator ID() const { return id; }
@@ -181,6 +190,38 @@ Hash get_type_hash() {
 
 
 
+// begin --- ecs_base.h --- 
+
+//
+// Created by Finn Eggers on 31.05.24.
+//
+
+#ifndef F3D_ECS_BASE_H
+#define F3D_ECS_BASE_H
+
+namespace ecs{
+
+struct ECSBase {
+    virtual void component_removed(Hash, EntityID) = 0;
+    virtual void component_added(Hash, EntityID) = 0;
+
+    virtual void entity_activated(EntityID) = 0;
+    virtual void entity_deactivated(EntityID) = 0;
+
+    virtual void destroy_entity(EntityID) = 0;
+    virtual void destroy_system(SystemID) = 0;
+    virtual void destroy_listener(EventListenerID) = 0;
+};
+
+}
+
+#endif    // F3D_ECS_BASE_H
+
+
+// end --- ecs_base.h --- 
+
+
+
 #include <ostream>
 #include <type_traits>
 #include <memory>
@@ -191,6 +232,8 @@ namespace ecs {
  * Any component that is added to an entity must inherit from this struct.
  */
 struct ComponentBase {
+    ECSBase* ecs = nullptr;
+
     ID component_entity_id = INVALID_ID;
 
     // when the component is removed from the entity
@@ -229,38 +272,6 @@ using ComponentPtr = std::shared_ptr<ComponentBase>;
 
 
 // end --- component.h --- 
-
-
-
-// begin --- ecs_base.h --- 
-
-//
-// Created by Finn Eggers on 31.05.24.
-//
-
-#ifndef F3D_ECS_BASE_H
-#define F3D_ECS_BASE_H
-
-namespace ecs{
-
-struct ECSBase {
-    virtual void component_removed(Hash, EntityID) = 0;
-    virtual void component_added(Hash, EntityID) = 0;
-
-    virtual void entity_activated(EntityID) = 0;
-    virtual void entity_deactivated(EntityID) = 0;
-
-    virtual void destroy_entity(EntityID) = 0;
-    virtual void destroy_system(SystemID) = 0;
-    virtual void destroy_listener(EventListenerID) = 0;
-};
-
-}
-
-#endif    // F3D_ECS_BASE_H
-
-
-// end --- ecs_base.h --- 
 
 
 
@@ -322,9 +333,12 @@ struct Entity {
     }
 
     template<typename T, typename... Args>
-    inline void assign(Args&&... args) {
+    inline ComponentID assign(Args&&... args) {
         auto component = std::make_shared<T>(std::forward<Args>(args)...);
         Hash hashing   = T::hash();
+
+        // assign ecs to the component
+        component->ecs = ecs;
 
         // If the component already exists, remove it first
         if (has<T>()) {
@@ -350,6 +364,9 @@ struct Entity {
         if (m_active) {
             component->entity_activated();
         }
+
+        // return the component id
+        return ComponentID{entity_id, hashing};
     }
 
     template<typename T>
@@ -913,6 +930,15 @@ struct ECS : public ECSBase {
     // Grant Entity access to private members.
     friend Entity;
     friend ComponentEntityList;
+
+    ECS() = default;
+
+    // Delete copy constructor and copy assignment operator
+    ECS(const ECS&) = delete;
+    ECS& operator=(const ECS&) = delete;
+    // Delete move constructor and move assignment operator
+    ECS(ECS&&) = delete;
+    ECS& operator=(ECS&&) = delete;
 
     virtual ~ECS() {
         destroy_all_entities();
