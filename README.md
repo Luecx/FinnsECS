@@ -73,7 +73,7 @@ ecs[entityID].assign<MyComponent>(/* constructor arguments */);
 To get a component from an entity:
 
 ```cpp
-std::shared_ptr<MyComponent> comp = ecs[entityID].get<MyComponent>();
+MyComponent* comp = ecs[entityID].get<MyComponent>();
 if (comp) {
     // Use the component
 }

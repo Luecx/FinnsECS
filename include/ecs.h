@@ -232,9 +232,12 @@ namespace ecs {
  * Any component that is added to an entity must inherit from this struct.
  */
 struct ComponentBase {
-    ECS* ecs = nullptr;
+    // empty constructor
+    ComponentBase() = default;
 
-    ID component_entity_id = INVALID_ID;
+    ECS*        ecs                 = nullptr;
+    ComponentID component_id         = ComponentID {};
+    ID          component_entity_id = INVALID_ID;
 
     // when the component is removed from the entity
     virtual void component_removed() {};
@@ -248,11 +251,16 @@ struct ComponentBase {
     virtual void other_component_removed(Hash hash) {};
 
     // get the hash of the component
-    virtual Hash get_hash() const = 0;
+    virtual Hash get_hash() const {
+        return INVALID_HASH;
+    };
 };
 
 template <typename T>
 struct ComponentOf : public ComponentBase {
+    // empty constructor
+    ComponentOf() = default;
+
     // implement static hash function for components
     static Hash hash() {
         return get_type_hash<T>();
@@ -264,7 +272,7 @@ struct ComponentOf : public ComponentBase {
     }
 };
 
-using ComponentPtr = std::shared_ptr<ComponentBase>;
+using ComponentPtr = std::unique_ptr<ComponentBase>;
 
 } // namespace ecs_
 
@@ -292,7 +300,7 @@ struct Entity {
     // Unique identifier for the entity.
     EntityID entity_id;
     // Container for the entity's components.
-    std::unordered_map<Hash, ComponentPtr> components;
+    std::unordered_map<Hash, ComponentPtr> components{};
     // Pointer to the ECS that owns this entity.
     ECSBase* ecs;
     // Checks if its active or inactive.
@@ -304,7 +312,42 @@ struct Entity {
 
     public:
 
-    Entity(ECSBase* p_ecs)
+    // Copy constructor deleted but manual move constructor
+    Entity(const Entity& other) = delete;
+
+    // Move constructor
+    Entity(Entity&& other) noexcept
+        : entity_id(other.entity_id)
+        , components(std::move(other.components))
+        , ecs(other.ecs)
+        , m_active(other.m_active) {
+        other.entity_id.id = INVALID_ID;
+        other.ecs = nullptr;
+        other.m_active = false;
+    }
+
+    // Copy assignment operator
+    Entity& operator=(const Entity& other) = delete;
+
+    // Move assignment operator
+    Entity& operator=(Entity&& other) noexcept {
+        if (this == &other)
+            return *this;
+
+        remove_all_components();
+
+        entity_id = other.entity_id;
+        components = std::move(other.components);
+        ecs = other.ecs;
+        m_active = other.m_active;
+
+        other.entity_id.id = INVALID_ID;
+        other.ecs = nullptr;
+        other.m_active = false;
+        return *this;
+    }
+
+    Entity(ECSBase* p_ecs = nullptr)
         : entity_id{INVALID_ID}
         , ecs(p_ecs) {}
 
@@ -324,21 +367,23 @@ struct Entity {
     }
 
     template<typename T>
-    std::shared_ptr<T> get() {
+    T* get() {
         Hash hash = get_type_hash<T>();
         if (components.find(hash) != components.end()) {
-            return std::static_pointer_cast<T>(components.at(hash));
+            return static_cast<T*>(components.at(hash).get());
         }
         return nullptr;
     }
 
     template<typename T, typename... Args>
     inline ComponentID assign(Args&&... args) {
-        auto component = std::make_shared<T>(std::forward<Args>(args)...);
+        auto component = std::make_unique<T>(std::forward<Args>(args)...);
         Hash hashing   = T::hash();
 
         // assign ecs to the component
         component->ecs = reinterpret_cast<ECS*>(ecs);
+        // assign id
+        component->component_id = ComponentID{entity_id, hashing};
 
         // If the component already exists, remove it first
         if (has<T>()) {
@@ -346,7 +391,7 @@ struct Entity {
         }
 
         // Add the new component
-        components[hashing] = component;
+        components[hashing] = std::move(component);
         ecs->component_added(hashing, id());
 
         // notify all other components that a new component was added
@@ -366,7 +411,7 @@ struct Entity {
         }
 
         // return the component id
-        return ComponentID{entity_id, hashing};
+        return component->component_id;
     }
 
     template<typename T>
@@ -734,13 +779,16 @@ struct ComponentEntityList : CompactVector<ID> {
 
     // overloaded
     void moved(ID from, ID to) override {
-        (*entities_)[elements[to]].components[comp_hash_]->component_entity_id = to;
+        // TODO
+//        (*entities_)[elements[to]].components[comp_hash_]->component_entity_id = to;
     }
     void removed(ID id) override {
-        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = INVALID_ID;
+        // TODO
+//        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = INVALID_ID;
     }
     void added(ID id) override {
-        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = id;
+        // TODO
+//        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = id;
     }
 
 };
@@ -955,19 +1003,10 @@ struct ECS : public ECSBase {
     Entity& operator[](ID id) {
         return entities[id];
     }
-    Entity operator[](ID id) const {
-        return entities[id];
-    }
     Entity& at(ID id) {
         return entities.at(id);
     }
-    Entity at(ID id) const {
-        return entities.at(id);
-    }
     Entity& operator()(ID id) {
-        return entities[id];
-    }
-    Entity operator()(ID id) const {
         return entities[id];
     }
 
@@ -1100,7 +1139,8 @@ struct ECS : public ECSBase {
 
 
 inline ecs::EntityID ecs::ECS::spawn(bool active) {
-    entities.push_back(Entity(this));
+
+    entities.emplace_back(Entity{this});
     entities.back().entity_id = EntityID{entities.size() - 1};
 
     if (active) {

@@ -28,13 +28,16 @@ struct ComponentEntityList : CompactVector<ID> {
 
     // overloaded
     void moved(ID from, ID to) override {
-        (*entities_)[elements[to]].components[comp_hash_]->component_entity_id = to;
+        // TODO
+//        (*entities_)[elements[to]].components[comp_hash_]->component_entity_id = to;
     }
     void removed(ID id) override {
-        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = INVALID_ID;
+        // TODO
+//        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = INVALID_ID;
     }
     void added(ID id) override {
-        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = id;
+        // TODO
+//        (*entities_)[elements[id]].components[comp_hash_]->component_entity_id = id;
     }
 
 };

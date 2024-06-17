@@ -24,7 +24,7 @@ struct Entity {
     // Unique identifier for the entity.
     EntityID entity_id;
     // Container for the entity's components.
-    std::unordered_map<Hash, ComponentPtr> components;
+    std::unordered_map<Hash, ComponentPtr> components{};
     // Pointer to the ECS that owns this entity.
     ECSBase* ecs;
     // Checks if its active or inactive.
@@ -36,7 +36,42 @@ struct Entity {
 
     public:
 
-    Entity(ECSBase* p_ecs)
+    // Copy constructor deleted but manual move constructor
+    Entity(const Entity& other) = delete;
+
+    // Move constructor
+    Entity(Entity&& other) noexcept
+        : entity_id(other.entity_id)
+        , components(std::move(other.components))
+        , ecs(other.ecs)
+        , m_active(other.m_active) {
+        other.entity_id.id = INVALID_ID;
+        other.ecs = nullptr;
+        other.m_active = false;
+    }
+
+    // Copy assignment operator
+    Entity& operator=(const Entity& other) = delete;
+
+    // Move assignment operator
+    Entity& operator=(Entity&& other) noexcept {
+        if (this == &other)
+            return *this;
+
+        remove_all_components();
+
+        entity_id = other.entity_id;
+        components = std::move(other.components);
+        ecs = other.ecs;
+        m_active = other.m_active;
+
+        other.entity_id.id = INVALID_ID;
+        other.ecs = nullptr;
+        other.m_active = false;
+        return *this;
+    }
+
+    Entity(ECSBase* p_ecs = nullptr)
         : entity_id{INVALID_ID}
         , ecs(p_ecs) {}
 
@@ -56,21 +91,23 @@ struct Entity {
     }
 
     template<typename T>
-    std::shared_ptr<T> get() {
+    T* get() {
         Hash hash = get_type_hash<T>();
         if (components.find(hash) != components.end()) {
-            return std::static_pointer_cast<T>(components.at(hash));
+            return static_cast<T*>(components.at(hash).get());
         }
         return nullptr;
     }
 
     template<typename T, typename... Args>
     inline ComponentID assign(Args&&... args) {
-        auto component = std::make_shared<T>(std::forward<Args>(args)...);
+        auto component = std::make_unique<T>(std::forward<Args>(args)...);
         Hash hashing   = T::hash();
 
         // assign ecs to the component
         component->ecs = reinterpret_cast<ECS*>(ecs);
+        // assign id
+        component->component_id = ComponentID{entity_id, hashing};
 
         // If the component already exists, remove it first
         if (has<T>()) {
@@ -78,7 +115,7 @@ struct Entity {
         }
 
         // Add the new component
-        components[hashing] = component;
+        components[hashing] = std::move(component);
         ecs->component_added(hashing, id());
 
         // notify all other components that a new component was added
@@ -98,7 +135,7 @@ struct Entity {
         }
 
         // return the component id
-        return ComponentID{entity_id, hashing};
+        return component->component_id;
     }
 
     template<typename T>

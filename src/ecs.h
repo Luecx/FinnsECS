@@ -67,19 +67,10 @@ struct ECS : public ECSBase {
     Entity& operator[](ID id) {
         return entities[id];
     }
-    Entity operator[](ID id) const {
-        return entities[id];
-    }
     Entity& at(ID id) {
         return entities.at(id);
     }
-    Entity at(ID id) const {
-        return entities.at(id);
-    }
     Entity& operator()(ID id) {
-        return entities[id];
-    }
-    Entity operator()(ID id) const {
         return entities[id];
     }
 
@@ -212,7 +203,8 @@ struct ECS : public ECSBase {
 
 
 inline ecs::EntityID ecs::ECS::spawn(bool active) {
-    entities.push_back(Entity(this));
+
+    entities.emplace_back(Entity{this});
     entities.back().entity_id = EntityID{entities.size() - 1};
 
     if (active) {

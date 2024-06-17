@@ -19,9 +19,12 @@ namespace ecs {
  * Any component that is added to an entity must inherit from this struct.
  */
 struct ComponentBase {
-    ECS* ecs = nullptr;
+    // empty constructor
+    ComponentBase() = default;
 
-    ID component_entity_id = INVALID_ID;
+    ECS*        ecs                 = nullptr;
+    ComponentID component_id         = ComponentID {};
+    ID          component_entity_id = INVALID_ID;
 
     // when the component is removed from the entity
     virtual void component_removed() {};
@@ -35,11 +38,16 @@ struct ComponentBase {
     virtual void other_component_removed(Hash hash) {};
 
     // get the hash of the component
-    virtual Hash get_hash() const = 0;
+    virtual Hash get_hash() const {
+        return INVALID_HASH;
+    };
 };
 
 template <typename T>
 struct ComponentOf : public ComponentBase {
+    // empty constructor
+    ComponentOf() = default;
+
     // implement static hash function for components
     static Hash hash() {
         return get_type_hash<T>();
@@ -51,7 +59,7 @@ struct ComponentOf : public ComponentBase {
     }
 };
 
-using ComponentPtr = std::shared_ptr<ComponentBase>;
+using ComponentPtr = std::unique_ptr<ComponentBase>;
 
 } // namespace ecs_
 
