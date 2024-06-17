@@ -402,7 +402,7 @@ struct Entity {
 
             // call the other_component_added function
             comp->other_component_added(hash);
-            component->other_component_added(hash);
+            components[hashing]->other_component_added(hash);
         }
 
         // inform the component that it was added to an active entity
@@ -411,7 +411,7 @@ struct Entity {
         }
 
         // return the component id
-        return component->component_id;
+        return components[hashing]->component_id;
     }
 
     template<typename T>
