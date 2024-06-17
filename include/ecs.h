@@ -232,7 +232,7 @@ namespace ecs {
  * Any component that is added to an entity must inherit from this struct.
  */
 struct ComponentBase {
-    ECSBase* ecs = nullptr;
+    ECS* ecs = nullptr;
 
     ID component_entity_id = INVALID_ID;
 
@@ -338,7 +338,7 @@ struct Entity {
         Hash hashing   = T::hash();
 
         // assign ecs to the component
-        component->ecs = ecs;
+        component->ecs = reinterpret_cast<ECS*>(ecs);
 
         // If the component already exists, remove it first
         if (has<T>()) {

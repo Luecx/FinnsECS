@@ -70,7 +70,7 @@ struct Entity {
         Hash hashing   = T::hash();
 
         // assign ecs to the component
-        component->ecs = ecs;
+        component->ecs = reinterpret_cast<ECS*>(ecs);
 
         // If the component already exists, remove it first
         if (has<T>()) {

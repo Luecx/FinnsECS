@@ -19,7 +19,7 @@ namespace ecs {
  * Any component that is added to an entity must inherit from this struct.
  */
 struct ComponentBase {
-    ECSBase* ecs = nullptr;
+    ECS* ecs = nullptr;
 
     ID component_entity_id = INVALID_ID;
 
