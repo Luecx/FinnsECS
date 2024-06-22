@@ -5,12 +5,12 @@
 #ifndef ECS_ECS_CORE_H_
 #define ECS_ECS_CORE_H_
 
+#include "types.h"
+#include "hash.h"
 #include "component.h"
 #include "ecs.h"
 #include "entity.h"
 #include "event.h"
-#include "hash.h"
 #include "system.h"
-#include "types.h"
 
 #endif    // ECS_ECS_CORE_H_
