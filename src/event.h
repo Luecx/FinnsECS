@@ -5,6 +5,10 @@
 #ifndef ECS_ECS_EVENT_H_
 #define ECS_ECS_EVENT_H_
 
+#include "hash.h"
+#include "types.h"
+#include "ids.h"
+
 #include <memory>
 #include "types.h"
 #include "ids.h"

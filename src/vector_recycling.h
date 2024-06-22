@@ -5,6 +5,8 @@
 #ifndef ECS_VECTOR_RECYCLING_H
 #define ECS_VECTOR_RECYCLING_H
 
+#include <algorithm>
+#include <iostream>
 #include <vector>
 #include <queue>
 
